@@ -1,0 +1,168 @@
+---
+title: "ProjectResearch" #title ganti dengan nama project anda (misalnya: ProjectLSTM)
+output:
+  pdf_document: default
+  html_document: default
+date: "2022-11-16"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Load Packages/Library
+```{r}
+# masukkan semua library yang dibutuhkan disini atau bertambah sesuai dengan kebutuhan, misalnya
+library(dplyr) #library digunakan untuk manipulasi data
+library(ggplot2) #library digunakan untuk visualiasi data
+library (caTools)#library digunakan untuk klasifikasi data
+library (lubridate) #library digunakan untuk mengubah tipe data char menjadi date
+library (summarytools)#library digunakan untuk melihat statistik deskriptif pada data
+```
+
+# 2. Obtain Data
+```{r}
+dataispu <- read.csv("Data/dataspku.csv")
+view(dataispu)
+```
+
+# 3. Scrub Data
+## a. Melihat Summary data
+```{r}
+# your code
+summary(dataispu)
+```
+dari hasil summary data masih memiliki tipe data variabel yang belum diubah, dan data yang akan diubah adalah Variabel Tanggal diubah tipe datanya dari char menjadi date, variabel pm10, so2, co, o3 dan no2 juga diubah tipe datanya dari int menjadi numeric.
+
+## b. Membersihkan data yang Missing Value
+```{r}
+cleards_ispu <- na.omit(changeds_ispu)
+```
+## c. Mengubah tipe data pada variabel tanggal
+```{r}
+changeds_ispu <- cleards_ispu %>% 
+  mutate(Tanggal=ymd(Tanggal)) %>% 
+  arrange(Tanggal)
+```
+pada script diatas digunakan untuk mengubah tipe data pada variabel tanggal yang awalnya char menjadi date.
+
+## d. Mengubah Tipe Data Variabel PM10, so2, co, o3, no2, max
+```{r}
+changeds_ispu$pm10<-as.numeric(changeds_ispu$pm10)
+changeds_ispu$so2<-as.numeric(changeds_ispu$so2)
+changeds_ispu$co<-as.numeric(changeds_ispu$co)
+changeds_ispu$o3<-as.numeric(changeds_ispu$o3)
+changeds_ispu$no2<-as.numeric(changeds_ispu$no2)
+dscleanispu$Max<-as.character(dscleanispu$Max)
+```
+disini kita lihat script yang digunakan untuk mengubah tipe variabel yang awalnya char menjadi numeric dan pada tipe data variabel max dari numeric menjadi character.
+
+## e. memeriksa data yang bersifat missing value
+```{r}
+colSums(is.na(cleardataispu))
+```
+script diatas digunakan untuk menunjukan data yang bersifat missing value pada masing-masing variabel
+
+# 4. Explore Data
+## a. Analisis Deskriptif
+```{r}
+descr(changeds_ispu)
+```
+pada scriprt diatas digunakan untuk melihat statistik descriptif pada data
+
+## b. Visualisasi Data
+### b.1 Visualisasi Data Partikulat Polusi Udara PM10
+```{r}
+changeds_ispu %>% 
+  select (pm10, Stasiun, Tanggal) %>%
+  ggplot(aes(x = Tanggal, y= pm10))+
+  geom_line() + 
+  geom_line(aes(col = pm10))+
+  labs(title = "Grafik data Partikulat PM10",
+  x = "Tahun",
+  y = "Nilai PM10")+ theme_minimal()
+```
+kita lihat grafik menunjukan tingkat PM10 terendah ada di pertengahan antara tahun 2016 dan 2018 dan tingkat PM10 tertinggi ada di tahun 2021 akhir.
+
+### b.2 Visualisasi Data SO2
+```{r}
+changeds_ispu %>% 
+  select(so2,Tanggal) %>%
+  ggplot(aes(x = Tanggal,y=so2)) +
+  geom_line(aes(col = so2)) +
+  labs(title = "Tingkat Sulfur Dioksida",
+       x = "Tahun",
+       y = "Nilai SO2") +
+  theme_minimal()
+```
+kita lihat grafik menunjukkan bahwa tingkat SO2 terendah ada di tahun 2016 dan di rentang tahun 2018 dan 2020 sedangkan tingkat SO2 tertinggi ada pada tahun 2020 akhir.
+
+### b.3 Visualisasi Data CO
+```{r}
+changeds_ispu %>% 
+  select(co,Tanggal) %>%
+  ggplot(aes(x = Tanggal,y=co)) +
+  geom_line(aes(col = co)) +
+  labs(title = "Tingkat Karbon Monoksida",
+       x = "Tahun",
+       y = "Nilai CO") +
+  theme_minimal()
+```
+kita lihat grafik menunjukan tingkat CO terendah ada di pertengahan antara tahun 2017 dan 2018 dan tingkat CO tertinggi ada di tahun 2020 akhir. 
+
+### b.4 Visualisasi Data O3
+```{r}
+changeds_ispu %>% 
+  select(o3,Tanggal) %>%
+  ggplot(aes(x = Tanggal,y=o3)) +
+  geom_line(aes(col = o3)) +
+  labs(title = "Tingkat Ozon",
+       x = "Tahun",
+       y = "Nilai O3") +
+  theme_minimal()
+```
+kita lihat grafik menunjukkan tingkat O3 terendah ada pada tahun 2020 akhir dan tingkat O3 tertinggi ada di tahun 2019 awal.
+
+### b.5 Visualisasi Data no2
+```{r}
+changeds_ispu %>%  
+  select(no2,Tanggal) %>%
+  ggplot(aes(x = Tanggal,y=no2)) +
+  geom_line(aes(col = no2)) +
+  labs(title = "Tingkat Nitrogen Dioksida",
+       x = "Tahun",
+       y = "Nilai NO2") +
+  theme_minimal()
+```
+kita lihat grafik menunjukkan hasil visualisasi dimana tingkat NO2 terendah masih stabil di rentang tahun 2016 sampai 2020 dan di tahun 2020 akhir meningkat dengan signifikan hingga menjadi tingkat NO2 tertinggi di 5 tahun terakhir periode 2016 sampai 2021.
+
+
+# 4. Model
+Definisikan model prediksi yang akan dilakukan berdasarkan metode yg digunakan LSTM/Prophet/SARIMA
+
+## a. Pembagian Dataset
+```{r}
+# your code
+```
+
+## b. Model Prediksi PM10
+```{r}
+# your code
+```
+
+## c. Model Prediksi CO
+.
+.
+.
+dst
+
+## d. Validasi Model
+```{r}
+# your code
+```
+
+
+Setiap aktivitas dan hasilnya harus diinterpretasikan dan dituliskan dibawah hasilny sesuai dengan metode prediksi yang digunakan
+
+# 5. Iterpret
+Jelaskan interpretasi hasil validasi dari model yg dilakukan dan simpulkan untuk masing-masing
