@@ -2223,24 +2223,6 @@ MAPE_svr5
 # 6. Interpret (Menampilkan Hasil Kinerja (Model)
 
 ```{r}
-model_performance <- data.frame(
-  Variabel=c("SO2","PM10","NO2","CO","O3"),
-  Model = c("Prophet","SVR"),
-  MSE = c(MSEProphet,MSEProphet1,MSEProphet2,MSEProphet3,MSEProphet4,MSE_svr1,MSE_svr2,MSE_svr3,MSE_svr4,MSE_svr5),
-  RMSE = c(RMSEProphet,RMSEProphet1,RMSEProphet2,RMSEProphet3,RMSEProphet4, RMSE_svr1,RMSE_svr2,RMSE_svr3,RMSE_svr4,RMSE_svr5),
-  MAE = c(MAEProphet,MAEProphet1,MAEProphet2,MAEProphet3,MAEProphet4,MAE_svr1,MAE_svr2,MAE_svr3,MAE_svr4,MAE_svr5),
-  MAPE = c(MAPEProphet,MAPEProphet1,MAPEProphet2,MAPEProphet3,MAPEProphet4, MAPE_svr1,MAPE_svr2,MAPE_svr3,MAPE_svr4,MAPE_svr5),
-  stringsAsFactors = FALSE)
-```
-```{r}
-#simpan hasil model performance
-model_performance
-write.csv (model_performance, "modelperform.csv")
-```
-
-berdasarkan hasil analisis dan evaluasi yang sudah dilakukan didapatkan bahwa
-
-```{r}
 ##Nilai Hasil Evaluasi Model Prophet
 model_performance1 <- data.frame(
   Variabel=c("SO2","PM10","NO2","CO","O3"),
