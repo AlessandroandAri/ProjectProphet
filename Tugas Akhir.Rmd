@@ -1103,6 +1103,7 @@ qplot(Tanggal, co, data = train_data_co,
 qplot(Tanggal, co, data = test_data_co,
       main = "Tingkat Polusi Partikel CO Uji")
 ```
+
 ## b. Mengelompokkan dan Menyiapkan data latih berdasarkan Variabel PM10
 ```{r}
 daily_co <- train_data_co%>% 
@@ -1122,6 +1123,7 @@ train_daily_co <- daily_co %>%
     )
 glimpse(train_daily_co)
 ```
+
 ## c. Membuat Model Prophet
 
 ```{r}
@@ -1136,6 +1138,9 @@ prophet_co <- prophet(daily.seasonality = TRUE, seasonality_prior_scale=0.1) %>%
 future_prophet_co<- make_future_dataframe(prophet_co, periods = 365*2, freq = "day")
 glimpse(future_prophet_co)
 ```
+```{r}
+view(forecast_final_o3)
+```
 
 ## e. Menampilkan hasil prediksi
 
@@ -1144,6 +1149,10 @@ glimpse(future_prophet_co)
 forecast_co <- predict(prophet_co, future_prophet_co)
 plot(prophet_co, forecast_co)
 ```
+```{r}
+view(forecast_co)
+```
+
 
 ## f. Menampilkan hasil prediksi berdasarkan komponen
 
@@ -1241,7 +1250,6 @@ test_daily_co <- daily_co_test %>%
     )
 glimpse(test_daily_co)
 ```
-
 ## m. Model Final
 
 ```{r}
@@ -1362,6 +1370,7 @@ train_daily_o3 <- daily_o3 %>%
     )
 glimpse(train_daily_o3)
 ```
+
 ## c. Membuat Model Prophet
 
 ```{r}
@@ -1384,6 +1393,14 @@ glimpse(future_prophet_o3)
 forecast_o3 <- predict(prophet_o3, future_prophet_o3)
 plot(prophet_o3, forecast_o3)
 ```
+```{r}
+forecast_o3$yhat <- log(forecast_o3$yhat)
+```
+
+```{r}
+view(forecast_o3)
+```
+
 
 ## f. Menampilkan hasil prediksi berdasarkan komponen
 
@@ -1481,6 +1498,10 @@ test_daily_o3 <- daily_o3_test %>%
     )
 glimpse(test_daily_o3)
 ```
+```{r}
+test_daily_o3$y <- log(test_daily_o3$y)
+```
+
 
 ## m. Model Final
 
@@ -1583,8 +1604,15 @@ modelsvr_so2 <- svm(so2 ~ ., data = data_train_svr1, type = "eps-regression")
 ```
 
 ```{r}
+last_date <- max(training_data$date)
+prediction_period <- seq(last_date + 1, length.out = 365, by = "day")
+prediction_data <- data.frame(date = prediction_period)
+
+```
+
+```{r}
 # Melatih model
-predic_svr_train1 <- predict(modelsvr_so2, data_train_svr1)
+predic_svr_train1 <- predict(modelsvr_so2, newdata = prediction_data)
 descr(predic_svr_train1)
 ```
 
@@ -2271,7 +2299,140 @@ model_performance3 <- data.frame(
 model_performance3
 write.csv (model_performance3, "modelperform.csv")
 ```
+```{r}
+view(forecast_final)
+```
+
+```{r}
+vis_so2 <- forecast_final %>% 
+  mutate(first_date_month = floor_date(ds, unit = "month")) %>% 
+  group_by(first_date_month) %>% 
+  summarise(hasil_prediksi = sum (yhat))
+vis_so2
+```
+
+```{r}
+vis_pm10 <- forecast_finalpm10 %>% 
+  mutate(first_date_month = floor_date(ds, unit = "month")) %>% 
+  group_by(first_date_month) %>% 
+  summarise(hasil_prediksi = sum (yhat))
+vis_pm10
+```
+
+```{r}
+vis_no2 <- forecast_final_no2 %>% 
+  mutate(first_date_month = floor_date(ds, unit = "month")) %>% 
+  group_by(first_date_month) %>% 
+  summarise(hasil_prediksi = sum (yhat))
+vis_no2
+```
+
+```{r}
+vis_co <- forecast_final_co %>% 
+  mutate(first_date_month = floor_date(ds, unit = "month")) %>% 
+  group_by(first_date_month) %>% 
+  summarise(hasil_prediksi = sum (yhat))
+vis_co
+```
+
+```{r}
+vis_o3 <- forecast_final_o3 %>% 
+  mutate(first_date_month = floor_date(ds, unit = "month")) %>% 
+  group_by(first_date_month) %>% 
+  summarise(hasil_prediksi = sum (yhat))
+vis_o3
+```
+```{r}
+##Mengonversi kolom tanggal menjadi kelas 'Date'
+vis_so2$first_date_month <- as.Date(vis_so2$first_date_month)
+vis_pm10$first_date_month <- as.Date(vis_pm10$first_date_month)
+vis_no2$first_date_month <- as.Date(vis_no2$first_date_month)
+vis_co$first_date_month <- as.Date(vis_co$first_date_month)
+vis_o3$first_date_month <- as.Date(vis_o3$first_date_month)
+```
 
 
+##Visualisasi 5 Variabel
+#Model Prophet
+```{r}
+ggplot(data = vis_so2, aes(x =first_date_month , y = hasil_prediksi, color = "SO2"))+ geom_line() +
+geom_line(data = vis_pm10, aes(x =first_date_month , y = hasil_prediksi, color = "PM10")) +
+geom_line(data = vis_no2, aes(x =first_date_month , y = hasil_prediksi, color = "NO2")) +
+geom_line(data = vis_co, aes(x =first_date_month , y = hasil_prediksi, color = "CO")) +
+geom_line(data = vis_o3, aes(x =first_date_month , y = hasil_prediksi, color = "O3")) +
+labs(title = "Visualisasi 5 Variabel Prediksi Prophet",
+     x = "Tahun",
+     y = "Jumlah Partikel (μg/m3)") +
+theme_minimal() +
+scale_color_manual(values = c("#fff80e","#0e8eff","#30e97f","#0e0700","#d19f00"),
+labels = c("SO2","PM10","NO2","CO","O3")) +
+theme(legend.position = "bottom")
+```
+#Model SVR
+
+```{r}
+svr_so2 <- data_test_svr1 %>% 
+  mutate(first_date_month = floor_date(Tanggal, unit = "month")) %>% 
+  group_by(first_date_month) %>% 
+  summarise(hasil_prediksi = sum (predic_svr1))
+svr_so2
+```
+```{r}
+svr_pm10 <- data_test_svr2 %>% 
+  mutate(first_date_month = floor_date(Tanggal, unit = "month")) %>% 
+  group_by(first_date_month) %>% 
+  summarise(hasil_prediksi = sum (predic_svr2))
+svr_pm10
+```
+
+```{r}
+svr_no2 <- data_test_svr3 %>% 
+  mutate(first_date_month = floor_date(Tanggal, unit = "month")) %>% 
+  group_by(first_date_month) %>% 
+  summarise(hasil_prediksi = sum (predic_svr3))
+svr_no2
+```
+
+```{r}
+svr_co <- data_test_svr4 %>% 
+  mutate(first_date_month = floor_date(Tanggal, unit = "month")) %>% 
+  group_by(first_date_month) %>% 
+  summarise(hasil_prediksi = sum (predic_svr4))
+svr_co
+```
+
+```{r}
+svr_o3 <- data_test_svr5 %>% 
+  mutate(first_date_month = floor_date(Tanggal, unit = "month")) %>% 
+  group_by(first_date_month) %>% 
+  summarise(hasil_prediksi = sum (predic_svr5))
+svr_o3
+```
+
+```{r}
+##Mengonversi kolom tanggal menjadi kelas 'Date'
+svr_so2$first_date_month <- as.Date(svr_so2$first_date_month)
+svr_pm10$first_date_month <- as.Date(svr_pm10$first_date_month)
+svr_no2$first_date_month <- as.Date(svr_no2$first_date_month)
+svr_co$first_date_month <- as.Date(svr_co$first_date_month)
+svr_o3$first_date_month <- as.Date(svr_o3$first_date_month)
+```
+
+
+```{r}
+#visualisasi 5 variabel prediksi Model SVR
+ggplot(data = svr_so2, aes(x = first_date_month, y = hasil_prediksi, color = "SO2"))+ geom_line() +
+geom_line(data = svr_pm10, aes(x = first_date_month, y = hasil_prediksi, color = "PM10"))+
+geom_line(data = svr_no2, aes(x = first_date_month, y = hasil_prediksi, color = "NO2"))+
+geom_line(data = svr_co, aes(x = first_date_month, y = hasil_prediksi, color = "CO"))+
+geom_line(data = svr_o3, aes(x = first_date_month, y = hasil_prediksi, color = "O3"))+
+labs(title = "Visualisasi 5 Variabel Prediksi SVR",
+     x = "Tahun",
+     y = "Jumlah Partikel (μg/m3)") +
+theme_minimal() +
+scale_color_manual(values = c("#fff80e","#0e8eff","#30e97f","#0e0700","#d19f00"),
+labels = c("SO2","PM10","NO2","CO","O3")) +
+theme(legend.position = "bottom")
+```
 
 
