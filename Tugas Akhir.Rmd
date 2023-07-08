@@ -471,7 +471,6 @@ future_ts_monthly <- make_future_dataframe(model_ts_monthly, periods = 365)
 forecast_ts_monthly <- predict(model_ts_monthly, future_ts_monthly) 
 prophet_plot_components(model_ts_monthly, forecast_ts_monthly)
 ```
-
 ## g. Visualisasi Tren Peningkatan Partikel SO2
 
 ```{r}
@@ -556,7 +555,7 @@ final_model <- prophet(changepoint.prior.scale = 0.05,
                        holidays = holiday, daily.seasonality = TRUE) %>% 
   add_seasonality(name = "monthly", period = 30.5, fourier.order = 5)  %>% 
   fit.prophet(train_daily_so2) 
-future_final <- make_future_dataframe(model_final, periods = nrow(test_daily_so2) + 1) 
+future_final <- make_future_dataframe(final_model, periods = nrow(test_daily_so2) + 1) 
 forecast_final <- predict(final_model, future_final) 
 plot(final_model, forecast_final)
 ```
@@ -565,7 +564,7 @@ plot(final_model, forecast_final)
 
 ```{r}
 # membuat prediksi untuk data uji
-prediction_test <- predict(model_final, test_daily_so2)
+prediction_test <- predict(final_model, test_daily_so2)
 ```
 
 ```{r}
@@ -1138,21 +1137,14 @@ prophet_co <- prophet(daily.seasonality = TRUE, seasonality_prior_scale=0.1) %>%
 future_prophet_co<- make_future_dataframe(prophet_co, periods = 365*2, freq = "day")
 glimpse(future_prophet_co)
 ```
-```{r}
-view(forecast_final_o3)
-```
-
 ## e. Menampilkan hasil prediksi
 
 ```{r}
 # visualisasi hasil forecasting
 forecast_co <- predict(prophet_co, future_prophet_co)
+forecast_co$yhat <- ifelse(forecast_co$yhat < 0, 0, forecast_co$yhat)
 plot(prophet_co, forecast_co)
 ```
-```{r}
-view(forecast_co)
-```
-
 
 ## f. Menampilkan hasil prediksi berdasarkan komponen
 
@@ -1205,7 +1197,7 @@ model_co_holiday <- prophet(changepoint.prior.scale = 0.05,
   add_seasonality(name = "monthly", period = 30.5, fourier.order = 5) %>% 
   fit.prophet(train_daily_co) 
 future_co_holiday <- make_future_dataframe(model_co_holiday, periods = 365*5) 
-forecast_co_holiday <- predict(model_co_holiday, future_co_holiday) 
+forecast_co_holiday <- predict(model_co_holiday, future_co_holiday)
 plot(model_co_holiday, forecast_co_holiday)
 ```
 
@@ -1250,6 +1242,7 @@ test_daily_co <- daily_co_test %>%
     )
 glimpse(test_daily_co)
 ```
+
 ## m. Model Final
 
 ```{r}
@@ -1260,7 +1253,8 @@ final_model_co <- prophet(changepoint.prior.scale = 0.05,
   add_seasonality(name = "monthly", period = 30.5, fourier.order = 5)  %>% 
   fit.prophet(train_daily_co) 
 future_final_co <- make_future_dataframe(final_model_co, periods = nrow(test_daily_co) + 1) 
-forecast_final_co <- predict(final_model_co, future_final_co) 
+forecast_final_co <- predict(final_model_co, future_final_co)
+forecast_final_co$yhat <- ifelse(forecast_final_co$yhat < 0, 0, forecast_final_co$yhat)
 plot(final_model_co, forecast_final_co)
 ```
 
@@ -1276,7 +1270,6 @@ prediction_test_co <- predict(final_model_co, test_daily_co)
 # menampilkan hasil prediksi
 plot(final_model_co, prediction_test_co)
 ```
-
 
 ```{r}
 # menampilkan hasil prediksi
@@ -1391,16 +1384,9 @@ glimpse(future_prophet_o3)
 ```{r}
 # visualisasi hasil forecasting
 forecast_o3 <- predict(prophet_o3, future_prophet_o3)
+forecast_o3$yhat <- ifelse(forecast_o3$yhat < 0, 0, forecast_o3$yhat)
 plot(prophet_o3, forecast_o3)
 ```
-```{r}
-forecast_o3$yhat <- log(forecast_o3$yhat)
-```
-
-```{r}
-view(forecast_o3)
-```
-
 
 ## f. Menampilkan hasil prediksi berdasarkan komponen
 
@@ -1409,7 +1395,7 @@ view(forecast_o3)
 prophet_plot_components(prophet_o3, forecast_o3) 
 ```
 
-Berdasarkan gambar diatas bisa dilihat bahwa, tingkat partikel SO2 untuk 2 tahun kedepan trennya terus mengalami penurunan. Setiap tahun bisa dilihat ada peningkatan O3 yang paling tinggi adalah di bulan Juli s/d Agustus.
+Berdasarkan gambar diatas bisa dilihat bahwa, tingkat partikel O3 untuk 2 tahun kedepan trennya terus mengalami penurunan. Setiap tahun bisa dilihat ada peningkatan O3 yang paling tinggi adalah di bulan Juli s/d Agustus.
 
 ## g. Forecast berdasarkan seasonality bulan
 
@@ -1430,7 +1416,7 @@ prophet_plot_components(model_o3_monthly, forecast_o3_monthly)
 plot(model_o3_monthly, forecast_o3_monthly)
 ```
 
-Berdasarkan gambar tersebut bisa dilihat bahwa ada tren penurunan jumlah partikel Co dibandingkan tahun-tahun sebelumnya
+Berdasarkan gambar tersebut bisa dilihat bahwa ada tren penurunan jumlah partikel O3 dibandingkan tahun-tahun sebelumnya
 
 ## i. forecast berdasarkan seasionality penambahan holiday (hari libur)
 
@@ -1498,10 +1484,6 @@ test_daily_o3 <- daily_o3_test %>%
     )
 glimpse(test_daily_o3)
 ```
-```{r}
-test_daily_o3$y <- log(test_daily_o3$y)
-```
-
 
 ## m. Model Final
 
@@ -1513,7 +1495,8 @@ final_model_o3 <- prophet(changepoint.prior.scale = 0.05,
   add_seasonality(name = "monthly", period = 30.5, fourier.order = 5)  %>% 
   fit.prophet(train_daily_o3) 
 future_final_o3 <- make_future_dataframe(final_model_o3, periods = nrow(test_daily_o3) + 1) 
-forecast_final_o3 <- predict(final_model_o3, future_final_o3) 
+forecast_final_o3 <- predict(final_model_o3, future_final_o3)
+forecast_final_o3$yhat <- ifelse(forecast_final_o3$yhat < 0, 0, forecast_final_o3$yhat)
 plot(final_model_o3, forecast_final_o3)
 ```
 
@@ -1600,19 +1583,12 @@ qplot(Tanggal, so2, data = data_train_svr1,
 ## b. Membuat Model SVR
 
 ```{r}
-modelsvr_so2 <- svm(so2 ~ ., data = data_train_svr1, type = "eps-regression")
-```
-
-```{r}
-last_date <- max(training_data$date)
-prediction_period <- seq(last_date + 1, length.out = 365, by = "day")
-prediction_data <- data.frame(date = prediction_period)
-
+modelsvr_so2 <- svm(so2 ~., data = data_train_svr1, type = "eps-regression")
 ```
 
 ```{r}
 # Melatih model
-predic_svr_train1 <- predict(modelsvr_so2, newdata = prediction_data)
+predic_svr_train1 <- predict(modelsvr_so2, data_train_svr1)
 descr(predic_svr_train1)
 ```
 
@@ -1685,7 +1661,7 @@ data_test_svr_compare1 <- data_test_svr1 %>%
   mutate(Nilai_Asli = so2,
          Nilai_Prediksi = predic_svr1) %>%
   select(Nilai_Asli, Nilai_Prediksi) %>% 
-  select(Nilai_Asli,Nilai_Prediksi)
+    select(Nilai_Asli,Nilai_Prediksi)
 # Tampilkan tabel
 data_test_svr_compare1
 ```
@@ -1838,7 +1814,6 @@ library(Metrics)
 MSE_svr2 <- mse(predic_svr2, data_test_svr2$pm10)
 MSE_svr2
 ```
-
 ```{r}
 # Menghitung RMSE
 RMSE_svr2 <- sqrt(MSE_svr2)
@@ -1966,7 +1941,7 @@ data_test_svr_compare3
 ```{r}
 # Menghitung MSE
 MSE_svr3 <- mse(predic_svr3, data_test_svr3$no2)
-MSE_svr3S
+MSE_svr3
 ```
 
 ```{r}
@@ -2261,11 +2236,39 @@ model_performance1 <- data.frame(
   MAPE = c(MAPEProphet,MAPEProphet1,MAPEProphet2,MAPEProphet3,MAPEProphet4),
   stringsAsFactors = FALSE)
 ```
+
 ```{r}
 #simpan hasil model performance
 model_performance1
 write.csv (model_performance1, "modelperform.csv")
 ```
+```{r}
+##Rata-rata nilai Akurasi
+mean_MSE <- mean(model_performance1$MSE)
+mean_MSE
+```
+```{r}
+##Rata-rata nilai Akurasi
+mean_MSE <- mean(model_performance1$MSE)
+mean_MSE
+```
+```{r}
+##Rata-rata nilai Akurasi
+mean_RMSE <- mean(model_performance1$RMSE)
+mean_RMSE
+```
+```{r}
+##Rata-rata nilai Akurasi
+mean_MAE <- mean(model_performance1$MAE)
+mean_MAE
+```
+
+```{r}
+##Rata-rata nilai Akurasi
+mean_MAPE <- mean(model_performance1$MAPE)
+mean_MAPE
+```
+
 ```{r}
 model_performance2 <- data.frame(
   Variabel=c("SO2","PM10","NO2","CO","O3"),
@@ -2282,7 +2285,29 @@ model_performance2 <- data.frame(
 model_performance2
 write.csv (model_performance2, "modelperform.csv")
 ```
+```{r}
+#rata-rata akurasi model SVR
+rata_rata_mse <- mean(model_performance2$MSE)
+rata_rata_mse
+```
 
+```{r}
+#rata-rata akurasi model SVR
+rata_rata_rmse <- mean(model_performance2$RMSE)
+rata_rata_rmse
+```
+
+```{r}
+#rata-rata akurasi model SVR
+rata_rata_mae <- mean(model_performance2$MAE)
+rata_rata_mae
+```
+
+```{r}
+#rata-rata akurasi model SVR
+rata_rata_mape <- mean(model_performance2$MAPE)
+rata_rata_mape
+```
 ```{r}
 ##Nilai Hasil Evaluasi Model Prophet
 model_performance3 <- data.frame(
@@ -2310,6 +2335,22 @@ vis_so2 <- forecast_final %>%
   summarise(hasil_prediksi = sum (yhat))
 vis_so2
 ```
+
+```{r}
+##Menghitung Rata-rata kenaikan tren
+# Ambil kolom yang ingin dianalisis
+prediksi <- vis_so2$hasil_prediksi
+
+# Menghitung kenaikan
+kenaikan <- diff(prediksi)
+
+# Menghitung rata-rata kenaikan
+rata_rata_kenaikan_tren <- mean(kenaikan)
+
+print(paste("Rata-rata kenaikan dalam data prediksi:", rata_rata_kenaikan_tren))
+
+```
+
 
 ```{r}
 vis_pm10 <- forecast_finalpm10 %>% 
@@ -2355,11 +2396,11 @@ vis_o3$first_date_month <- as.Date(vis_o3$first_date_month)
 ##Visualisasi 5 Variabel
 #Model Prophet
 ```{r}
-ggplot(data = vis_so2, aes(x =first_date_month , y = hasil_prediksi, color = "SO2"))+ geom_line() +
-geom_line(data = vis_pm10, aes(x =first_date_month , y = hasil_prediksi, color = "PM10")) +
-geom_line(data = vis_no2, aes(x =first_date_month , y = hasil_prediksi, color = "NO2")) +
-geom_line(data = vis_co, aes(x =first_date_month , y = hasil_prediksi, color = "CO")) +
-geom_line(data = vis_o3, aes(x =first_date_month , y = hasil_prediksi, color = "O3")) +
+ggplot(data = vis_so2, aes(x =first_date_month , y = hasil_prediksi, color = "#fff80e"))+ geom_line() +
+geom_line(data = vis_pm10, aes(x =first_date_month , y = hasil_prediksi, color = "#0e8eff")) +
+geom_line(data = vis_no2, aes(x =first_date_month , y = hasil_prediksi, color = "#30e97f")) +
+geom_line(data = vis_co, aes(x =first_date_month , y = hasil_prediksi, color = "#0e0700")) +
+geom_line(data = vis_o3, aes(x =first_date_month , y = hasil_prediksi, color = "#d19f00")) +
 labs(title = "Visualisasi 5 Variabel Prediksi Prophet",
      x = "Tahun",
      y = "Jumlah Partikel (μg/m3)") +
